@@ -51,7 +51,7 @@ func InitLogger() {
 		zapcore.NewCore(fileEncoder, file, level),
 	)
 
-	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	logger = zap.New(core)
 	defer logger.Sync()
 }
 

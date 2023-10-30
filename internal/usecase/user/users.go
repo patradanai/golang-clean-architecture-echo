@@ -1,13 +1,12 @@
 package usersvc
 
-type IUsers interface {
-}
+import errs "movie-service/pkg/errors"
 
 type Users struct {
 }
 
-func (s *Users) FindById() {
-
+func (s *Users) FindById() errs.Errors {
+	return errs.WrapError(errs.MetaErrorInternalServer, "error")
 }
 
 func (s *Users) FindOne() {

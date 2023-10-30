@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"movie-service/configs"
+	"movie-service/internal/errors"
 	"movie-service/internal/handler"
 	"movie-service/internal/repository"
 	"movie-service/internal/usecase"
@@ -28,7 +29,6 @@ func main() {
 	logger.Info("Starting server...")
 
 	e := echo.New()
-
 	e.HTTPErrorHandler = handlerError
 
 	// Middlewares
@@ -68,21 +68,38 @@ func main() {
 }
 
 func handlerError(err error, c echo.Context) {
+	// if c.Response().Committed {
+	// 	return
+	// }
+
 	code := http.StatusInternalServerError
+	var errHttp errs.Errors
 	switch err.(type) {
 	case *echo.HTTPError:
-		he, _ := err.(*echo.HTTPError)
+		// he, _ := err.(*echo.HTTPError)
 
-		c.JSON(code, map[string]interface{}{
-			"code":    he.Code,
-			"message": he.Message,
-		})
-		return
-	case *errs.Errors:
-		return
+		// return
+		fmt.Println("1")
+	case *errs.MetaError:
+		he := err.(*errs.MetaError)
+
+		errHttp = he
+
 	default:
-		c.JSON(code, map[string]interface{}{})
-		return
+		errHttp = errs.WrapError(errors.InternalServerError, "")
+	}
+
+	// Send response
+	if !c.Response().Committed {
+		if c.Request().Method == http.MethodHead {
+			err = c.NoContent(code)
+		} else {
+			err = c.JSON(code, errHttp.Error())
+		}
+
+		if err != nil {
+			logger.Error(err)
+		}
 	}
 
 }

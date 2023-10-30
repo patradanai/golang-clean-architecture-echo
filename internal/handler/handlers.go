@@ -1,23 +1,19 @@
 package handler
 
 import (
+	"movie-service/internal/domain"
 	userhdl "movie-service/internal/handler/user"
-	"movie-service/internal/usecase"
 )
 
 type handlers struct {
-	ucs usecase.IServices
+	ucs domain.IServices
 }
 
-type IHandlers interface {
-	UserHandler() userhdl.IUserHandler
-}
-
-func InitHandlers(usecases usecase.IServices) IHandlers {
+func InitHandlers(usecases domain.IServices) domain.IHandlers {
 	return &handlers{ucs: usecases}
 }
 
-func (h *handlers) UserHandler() userhdl.IUserHandler {
+func (h *handlers) UserHandler() domain.IUserHandler {
 	return &userhdl.UserHandler{
 		Usecases: h.ucs,
 	}
