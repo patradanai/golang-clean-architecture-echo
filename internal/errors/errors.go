@@ -3,6 +3,9 @@ package errors
 import errs "movie-service/pkg/errors"
 
 var (
-	InternalServerError = errs.MetaErrorInternalServer.NewError(-1000, "Internal Server Error")
-	BadRequest          = errs.MetaErrorBadRequest.NewError(-1001, "Bad Request")
+
+	// Bussiness Error Dynamic Message Support Only %v
+	ErrBadAuthorization = errs.MetaErrorBadRequest.NewError(1001, "permission not allowed")
+
+	ErrUserNotFound = errs.MetaErrorBadRequest.NewError(1002, "user not found %v") // %s for Replace username
 )

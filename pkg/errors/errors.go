@@ -2,15 +2,28 @@ package errs
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Errors interface {
 	error
+
+	HttpCode() int
+
 	Error() string
+
 	Status() int
-	Causes() interface{}
+
+	Stack() interface{}
+
+	Cause() error
+
 	Line() string
+
 	DescLine() string
+
+	Message() string
+
 	Code() int
 }
 
@@ -19,20 +32,29 @@ type MetaError struct {
 	code     int
 	message  string
 	line     string
-	desc     string
+	causeBy  error
+	stack    interface{}
+}
+
+func (e *MetaError) HttpCode() int {
+	return e.httpCode
 }
 
 func (e *MetaError) Error() string {
-	return fmt.Sprintf("%d: %s - %s", e.code, e.desc, e.message)
+	return e.String()
 }
 
 func (e *MetaError) Status() int {
 	return e.code
 }
 
+func (e *MetaError) Message() string {
+	return e.message
+}
+
 // RestError Causes
-func (e *MetaError) Causes() interface{} {
-	return e.desc
+func (e *MetaError) Stack() interface{} {
+	return e.stack
 }
 
 func (e *MetaError) Code() int {
@@ -43,32 +65,52 @@ func (e *MetaError) Line() string {
 	return e.line
 }
 
+func (e *MetaError) Cause() error {
+	return e.causeBy
+}
+
 func (e *MetaError) DescLine() string {
-	return e.desc + ":" + e.line
+	return e.message + " : " + e.line
 }
 
 func (e *MetaError) String() string {
+	causeBy := ""
+	if e.causeBy != nil {
+		causeBy = fmt.Sprintf(", Caused by: %s", e.causeBy.Error())
+	}
 	code := fmt.Sprintf(", Error Code: %d", e.code)
 	linecode := fmt.Sprintf(", Line : %s", e.line)
 
-	return fmt.Sprintf("%s%s%s", e.desc, code, linecode)
+	return fmt.Sprintf("%s%s%s%s", e.message, code, linecode, causeBy)
 
 }
 
 // Wrap error
-func WrapError(errorDesc ErrorDesc, params ...string) Errors {
+func WrapError(errorDesc ErrorDesc, params ...interface{}) Errors {
 	return &MetaError{
 		httpCode: errorDesc.httpCode,
 		code:     errorDesc.code,
-		desc:     errorDesc.message,
+		message:  ReplaceDynamicMessage(errorDesc.message, params...),
+		line:     line(),
+		causeBy:  nil,
+		stack:    nil,
+	}
+}
+
+func WrapDError(err error, errorDesc ErrorDesc, params ...interface{}) Errors {
+	return &MetaError{
+		httpCode: errorDesc.httpCode,
+		code:     errorDesc.code,
+		message:  ReplaceDynamicMessage(errorDesc.message, params...),
+		causeBy:  err,
+		stack:    nil,
 		line:     line(),
 	}
 }
 
-func WrapDError(err error, code int, params ...string) Errors {
-	return &MetaError{
-		code: code,
-		desc: err.Error(),
-		line: line(),
+func ReplaceDynamicMessage(plainText string, params ...interface{}) string {
+	if strings.Contains(plainText, "%v") {
+		return fmt.Sprintf(plainText, params...)
 	}
+	return fmt.Sprintf(plainText)
 }

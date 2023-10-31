@@ -26,6 +26,13 @@ var (
 	}
 )
 
+var (
+	ErrorCodeNotFound = MetaErrorInternalServer.NewError(-99999, "ErrorCode Not Found")
+
+	InternalServerError = MetaErrorInternalServer.NewError(-1000, "Internal Server Error") // System Error
+	BadRequest          = MetaErrorBadRequest.NewError(-1001, "Bad Request")
+)
+
 type ErrorDesc struct {
 	httpCode int
 	code     int

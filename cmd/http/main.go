@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"movie-service/configs"
-	"movie-service/internal/errors"
 	"movie-service/internal/handler"
 	"movie-service/internal/repository"
 	"movie-service/internal/usecase"
@@ -51,7 +50,7 @@ func main() {
 
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%v", cfg.Get().Http.Port)); err != http.ErrServerClosed {
-			e.Logger.Fatal("shutting down the server")
+			e.Logger.Fatalf("shutting down the server %v", err.Error())
 		}
 	}()
 
@@ -68,25 +67,22 @@ func main() {
 }
 
 func handlerError(err error, c echo.Context) {
-	// if c.Response().Committed {
-	// 	return
-	// }
+	var errHttp errs.Errors
+
+	switch err.(type) {
+	case *echo.HTTPError: // Echo Error
+		he, _ := err.(*echo.HTTPError)
+		errHttp = errs.WrapDError(he, errs.InternalServerError)
+	case *errs.MetaError: // Error from MetaError
+		he := err.(*errs.MetaError)
+		errHttp = he
+	default:
+		errHttp = errs.WrapError(errs.ErrorCodeNotFound)
+	}
 
 	code := http.StatusInternalServerError
-	var errHttp errs.Errors
-	switch err.(type) {
-	case *echo.HTTPError:
-		// he, _ := err.(*echo.HTTPError)
-
-		// return
-		fmt.Println("1")
-	case *errs.MetaError:
-		he := err.(*errs.MetaError)
-
-		errHttp = he
-
-	default:
-		errHttp = errs.WrapError(errors.InternalServerError, "")
+	if errHttp.HttpCode() != 0 {
+		code = errHttp.HttpCode()
 	}
 
 	// Send response
@@ -94,7 +90,13 @@ func handlerError(err error, c echo.Context) {
 		if c.Request().Method == http.MethodHead {
 			err = c.NoContent(code)
 		} else {
-			err = c.JSON(code, errHttp.Error())
+			err = c.JSON(code, errs.ResponseError{
+				Errors: errs.ErrorResponseBody{
+					Code:     errHttp.Code(),
+					Message:  errHttp.Message(),
+					DescLine: errHttp.DescLine(),
+				},
+			})
 		}
 
 		if err != nil {
