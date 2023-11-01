@@ -25,6 +25,8 @@ type Errors interface {
 	Message() string
 
 	Code() int
+
+	FieldError() []FieldError
 }
 
 type MetaError struct {
@@ -89,7 +91,7 @@ func (e *MetaError) FieldError() []FieldError {
 	return e.fields
 }
 
-// Wrap error
+// Wrap error with errorDesc
 func WrapError(errorDesc ErrorDesc, params ...interface{}) Errors {
 	return &MetaError{
 		httpCode: errorDesc.httpCode,
@@ -101,6 +103,7 @@ func WrapError(errorDesc ErrorDesc, params ...interface{}) Errors {
 	}
 }
 
+// Wrap Error with general error and errorDesc
 func WrapDError(err error, errorDesc ErrorDesc, params ...interface{}) Errors {
 	return &MetaError{
 		httpCode: errorDesc.httpCode,
@@ -112,6 +115,7 @@ func WrapDError(err error, errorDesc ErrorDesc, params ...interface{}) Errors {
 	}
 }
 
+// Wrap error for Custom Validate and errorDesc
 func WrapFieldError(errorDesc ErrorDesc, fields []FieldError, params ...interface{}) Errors {
 	return &MetaError{
 		httpCode: errorDesc.httpCode,

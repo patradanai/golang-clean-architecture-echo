@@ -2,7 +2,7 @@ package errs
 
 type (
 	ResponseError struct {
-		Errors ErrorResponseBody `json:"errors"`
+		Errors ErrorResponseBody `json:"errors,omitempty"`
 	}
 
 	FieldError struct {

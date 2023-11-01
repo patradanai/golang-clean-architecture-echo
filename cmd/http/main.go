@@ -97,7 +97,7 @@ func handlerError(err error, c echo.Context) {
 					Code:     errHttp.Code(),
 					Message:  errHttp.Message(),
 					DescLine: errHttp.DescLine(),
-					Fields:   errHttp.Stack(),
+					Fields:   errHttp.FieldError(),
 				},
 			})
 		}
