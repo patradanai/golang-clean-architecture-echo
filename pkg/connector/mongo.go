@@ -1,8 +1,7 @@
-package configs
+package connector
 
 import (
 	"context"
-	cfg "movie-service/pkg/env"
 	"movie-service/pkg/logger"
 	"time"
 
@@ -11,10 +10,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func InitMongo() *mongo.Client {
+type Options struct {
+	Uri string
+}
+
+func InitMongo(opts Options) *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Get().Database.Uri))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(opts.Uri))
 	if err != nil {
 		logger.Fatalf("failed to connect mongo: %s\n", err.Error())
 	}

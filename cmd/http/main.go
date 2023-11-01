@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"movie-service/configs"
 	"movie-service/internal/handler"
 	"movie-service/internal/repository"
 	"movie-service/internal/usecase"
+	"movie-service/pkg/connector"
 	cfg "movie-service/pkg/env"
 	errs "movie-service/pkg/errors"
 	"movie-service/pkg/logger"
@@ -34,7 +34,9 @@ func main() {
 	e.Use(middlewares.InitMidleware()...)
 
 	// Configs
-	mongoInstance := configs.InitMongo()
+	mongoInstance := connector.InitMongo(connector.Options{
+		Uri: cfg.Get().Database.Uri,
+	})
 
 	// Repository
 	repos := repository.InitRepositories(mongoInstance)
@@ -95,6 +97,7 @@ func handlerError(err error, c echo.Context) {
 					Code:     errHttp.Code(),
 					Message:  errHttp.Message(),
 					DescLine: errHttp.DescLine(),
+					Fields:   errHttp.Stack(),
 				},
 			})
 		}

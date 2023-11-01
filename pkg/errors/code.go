@@ -31,6 +31,8 @@ var (
 
 	InternalServerError = MetaErrorInternalServer.NewError(-1000, "Internal Server Error") // System Error
 	BadRequest          = MetaErrorBadRequest.NewError(-1001, "Bad Request")
+
+	ValidateFieldError = MetaErrorBadRequest.NewError(-1002, "Validate Field Errors")
 )
 
 type ErrorDesc struct {

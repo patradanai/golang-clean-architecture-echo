@@ -34,6 +34,7 @@ type MetaError struct {
 	line     string
 	causeBy  error
 	stack    interface{}
+	fields   []FieldError
 }
 
 func (e *MetaError) HttpCode() int {
@@ -82,7 +83,10 @@ func (e *MetaError) String() string {
 	linecode := fmt.Sprintf(", Line : %s", e.line)
 
 	return fmt.Sprintf("%s%s%s%s", e.message, code, linecode, causeBy)
+}
 
+func (e *MetaError) FieldError() []FieldError {
+	return e.fields
 }
 
 // Wrap error
@@ -90,7 +94,7 @@ func WrapError(errorDesc ErrorDesc, params ...interface{}) Errors {
 	return &MetaError{
 		httpCode: errorDesc.httpCode,
 		code:     errorDesc.code,
-		message:  ReplaceDynamicMessage(errorDesc.message, params...),
+		message:  replaceDynamicMessage(errorDesc.message, params...),
 		line:     line(),
 		causeBy:  nil,
 		stack:    nil,
@@ -101,14 +105,26 @@ func WrapDError(err error, errorDesc ErrorDesc, params ...interface{}) Errors {
 	return &MetaError{
 		httpCode: errorDesc.httpCode,
 		code:     errorDesc.code,
-		message:  ReplaceDynamicMessage(errorDesc.message, params...),
+		message:  replaceDynamicMessage(errorDesc.message, params...),
 		causeBy:  err,
 		stack:    nil,
 		line:     line(),
 	}
 }
 
-func ReplaceDynamicMessage(plainText string, params ...interface{}) string {
+func WrapFieldError(errorDesc ErrorDesc, fields []FieldError, params ...interface{}) Errors {
+	return &MetaError{
+		httpCode: errorDesc.httpCode,
+		code:     errorDesc.code,
+		message:  replaceDynamicMessage(errorDesc.message, params...),
+		causeBy:  nil,
+		stack:    nil,
+		line:     line(),
+		fields:   fields,
+	}
+}
+
+func replaceDynamicMessage(plainText string, params ...interface{}) string {
 	if strings.Contains(plainText, "%v") {
 		return fmt.Sprintf(plainText, params...)
 	}
