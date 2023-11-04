@@ -11,26 +11,26 @@ type RestOptions struct {
 	Retry   int
 }
 
-type restClient struct {
+type RestClient struct {
 	client *resty.Client
 }
 
-func InitRestClient(opts RestOptions) *restClient {
+func InitRestClient(opts RestOptions) *RestClient {
 	client := resty.New().SetRetryCount(opts.Retry).SetHeaders(opts.Headers).SetBaseURL(opts.Host)
 
-	return &restClient{client: client}
+	return &RestClient{client: client}
 }
 
-func (r *restClient) InterceptorRequest(in func(c *resty.Client, req *resty.Request) error) {
+func (r *RestClient) InterceptorRequest(in func(c *resty.Client, req *resty.Request) error) {
 	r.client.OnBeforeRequest(in)
 }
 
-func (r *restClient) InterceptorResponse(in func(c *resty.Client, res *resty.Response) error) {
+func (r *RestClient) InterceptorResponse(in func(c *resty.Client, res *resty.Response) error) {
 	r.client.OnAfterResponse(in)
 
 }
 
-func (r *restClient) GET(url string, Query map[string]string) (*resty.Response, error) {
+func (r *RestClient) GET(url string, Query map[string]string) (*resty.Response, error) {
 	res, err := r.client.R().SetQueryParams(Query).Get(url)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (r *restClient) GET(url string, Query map[string]string) (*resty.Response, 
 	return res, nil
 }
 
-func (r *restClient) POST(url string, data interface{}) (*resty.Response, error) {
+func (r *RestClient) POST(url string, data interface{}) (*resty.Response, error) {
 
 	res, err := r.client.R().SetBody(data).Post(url)
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *restClient) POST(url string, data interface{}) (*resty.Response, error)
 	return res, nil
 }
 
-func (r *restClient) PUT(url string, data interface{}) (*resty.Response, error) {
+func (r *RestClient) PUT(url string, data interface{}) (*resty.Response, error) {
 
 	res, err := r.client.R().SetBody(data).Put(url)
 	if err != nil {
@@ -59,7 +59,7 @@ func (r *restClient) PUT(url string, data interface{}) (*resty.Response, error) 
 	return res, nil
 }
 
-func (r *restClient) DELETE(url string, Query map[string]string) (*resty.Response, error) {
+func (r *RestClient) DELETE(url string, Query map[string]string) (*resty.Response, error) {
 
 	res, err := r.client.R().SetQueryParams(Query).Delete(url)
 	if err != nil {

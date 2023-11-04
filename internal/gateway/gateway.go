@@ -13,5 +13,5 @@ func InitGateway() domain.IGateway {
 }
 
 func (g *gateway) ImdbGateway() domain.IImdbGateway {
-	return &imdbgw.Imdb{}
+	return imdbgw.InitImdb()
 }
